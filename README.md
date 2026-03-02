@@ -4,7 +4,7 @@ A high-performance C++ SDK generator for Rocket League (Unreal Engine 3). It sca
 
 ## Credits & Special Thanks
 This project is built by:
-- **ItsBranK** (brank) - Primary Author & Lead Developer
+- **ItsBranK** (brank) - Primary Author & Lead Developer (Original project: https://github.com/CodeRedModding/CodeRed-Generator)
 - **TheFeckless** - Core SDK Logic & Research
 - **crunchy** - Optimization, Maintenance & Contributions
 - **OpenCode + GPT 5.3 Codex** - Code Generation & Optimization
