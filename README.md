@@ -1,6 +1,6 @@
 # RLSDKGenerator
 
-A high-performance C++ SDK generator for Rocket League (Unreal Engine 3). It scans the game's memory to reconstruct the internal object database into usable C++ headers.
+A high-performance C++ SDK generator for Rocket League (Unreal Engine 3). It scans the game's memory to reconstruct the internal object database, via the built in UE reflection system, into usable C++ headers.
 
 ## Credits & Special Thanks
 This project is built by:
