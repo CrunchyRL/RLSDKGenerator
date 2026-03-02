@@ -1,0 +1,24 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.doccache
+*.VC.db
+*.VC.opendb
+
+# Build artifacts
+x64/
+Debug/
+Release/
+ipch/
+*.obj
+*.pch
+*.pdb
+*.tlog
+*.lastbuildstate
+*.idb
+*.log
+
+# Misc
+*.tmp
+.DS_Store
