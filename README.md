@@ -14,7 +14,7 @@ This project is built by:
 - **Memory Scanning**: Robust pattern matching for `GObjects` and `GNames`.
 - **Member Alignment**: Automatic padding calculation for 1:1 binary compatibility.
 - **Customizable Output**: Easily configurable paths and logging.
-- **Object Cache**: Old objects, that dont change during a Rocket League update, will not be updated in the SDK.. making original SDK generation time from 0.4s - 0.6s, while update time is under 0.1s consistently..
+- **Object Cache**: Old objects, that havet changed after a Rocket League update, will not be changed in the SDK.. making original SDK generation time from 0.4s - 0.6s, while update time is under 0.1s consistently..
 
 ## Usage
 1. Build the solution (`RLSDKGenerator.sln`) in Release x64 mode.
