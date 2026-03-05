@@ -9,7 +9,7 @@ This project is built by:
 - **crunchy** - Optimization, Maintenance & Contributions
 
 ## Features
-- **Full SDK Generation**: Maps `Core`, `Engine`, `TAGame`, and `ProjectX`.
+- **Full SDK Generation**: Maps `Core`, `Engine`, `TAGame`, `ProjectX`, etc.
 - **Memory Scanning**: Robust pattern matching for `GObjects` and `GNames`.
 - **Member Alignment**: Automatic padding calculation for 1:1 binary compatibility.
 - **Customizable Output**: Easily configurable paths and logging.
