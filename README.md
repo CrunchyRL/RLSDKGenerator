@@ -7,7 +7,6 @@ This project is built by:
 - **ItsBranK** (brank) - Primary Author & Lead Developer (Original project: https://github.com/CodeRedModding/CodeRed-Generator)
 - **TheFeckless** - Core SDK Logic & Research
 - **crunchy** - Optimization, Maintenance & Contributions
-- **OpenCode + GPT 5.3 Codex** - Code Generation & Optimization
 
 ## Features
 - **Full SDK Generation**: Maps `Core`, `Engine`, `TAGame`, and `ProjectX`.
