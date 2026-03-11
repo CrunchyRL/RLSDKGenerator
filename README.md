@@ -1,10 +1,10 @@
 # RLSDKGenerator
 
-A high-performance C++ SDK generator for Rocket League (Unreal Engine 3). It scans the game's memory to reconstruct the internal object database into usable C++ headers.
+A high-performance C++ SDK generator for Rocket League (Unreal Engine 3). It scans the game's memory to reconstruct the internal object database, via the built in UE reflection system, into usable C++ headers.
 
 ## Credits & Special Thanks
 This project is built by:
-- **ItsBranK** (brank) - Primary Author & Lead Developer
+- **ItsBranK** (brank) - Primary Author & Lead Developer (Original project: https://github.com/CodeRedModding/CodeRed-Generator)
 - **TheFeckless** - Core SDK Logic & Research
 - **crunchy** - Optimization, Maintenance & Contributions
 - **OpenCode + GPT 5.3 Codex** - Code Generation & Optimization
@@ -14,6 +14,7 @@ This project is built by:
 - **Memory Scanning**: Robust pattern matching for `GObjects` and `GNames`.
 - **Member Alignment**: Automatic padding calculation for 1:1 binary compatibility.
 - **Customizable Output**: Easily configurable paths and logging.
+- **Object Cache**: Old objects, that havet changed after a Rocket League update, will not be changed in the SDK.. making original SDK generation time from 0.4s - 0.6s, while update time is under 0.1s consistently..
 
 ## Usage
 1. Build the solution (`RLSDKGenerator.sln`) in Release x64 mode.
