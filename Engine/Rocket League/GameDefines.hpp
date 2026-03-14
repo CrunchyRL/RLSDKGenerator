@@ -835,23 +835,26 @@ public:
 // (0x0000 - 0x0008)
 class FName {
 public:
-#ifdef UTF16
   using ElementType = const wchar_t;
-#else
-  using ElementType = const char;
-#endif
   using ElementPointer = ElementType *;
 
 private:
   int32_t FNameEntryId;   // 0x0000 (0x04)
   int32_t InstanceNumber; // 0x0004 (0x04)
 
+  static ElementPointer widen(const char* str) {
+      if (!str)
+          return nullptr;
+      thread_local static std::wstring buffer;
+      buffer.assign(str, str + strlen(str));
+      return buffer.c_str();
+  }
+
 public:
   FName() : FNameEntryId(-1), InstanceNumber(0) {}
 
   FName(int32_t id) : FNameEntryId(id), InstanceNumber(0) {}
 
-#ifdef UTF16
   FName(const ElementPointer nameToFind) : FNameEntryId(-1), InstanceNumber(0) {
     static std::vector<int32_t> foundNames{};
 
@@ -874,29 +877,8 @@ public:
       }
     }
   }
-#else
-  FName(ElementPointer nameToFind) : FNameEntryId(-1), InstanceNumber(0) {
-    static std::vector<int32_t> nameCache{};
 
-    for (int32_t entryId : nameCache) {
-      if (Names()->at(entryId)) {
-        if (strcmp(Names()->at(entryId)->Name, nameToFind) == 0) {
-          FNameEntryId = entryId;
-          return;
-        }
-      }
-    }
-
-    for (int32_t i = 0; i < Names()->size(); i++) {
-      if (Names()->at(i)) {
-        if (strcmp(Names()->at(i)->Name, nameToFind) == 0) {
-          nameCache.push_back(i);
-          FNameEntryId = i;
-        }
-      }
-    }
-  }
-#endif
+  FName(const char* nameToFind) : FName(widen(nameToFind)) {}
 
   FName(const FName &name)
       : FNameEntryId(name.FNameEntryId), InstanceNumber(name.InstanceNumber) {}
@@ -963,17 +945,20 @@ public:
 // (0x0000 - 0x0010)
 class FString {
 public:
-#ifdef UTF16_FSTRING
   using ElementType = const wchar_t;
-#else
-  using ElementType = const char;
-#endif
   using ElementPointer = ElementType *;
 
-private:
   ElementPointer ArrayData; // 0x0000 (0x08)
   int32_t ArrayCount;       // 0x0008 (0x04)
   int32_t ArrayMax;         // 0x000C (0x04)
+
+  static ElementPointer widen(const char* str) {
+      if (!str)
+          return nullptr;
+      thread_local static std::wstring buffer;
+      buffer.assign(str, str + strlen(str));
+      return buffer.c_str();
+  }
 
 public:
   FString() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {}
@@ -983,10 +968,14 @@ public:
     assign(other);
   }
 
+  FString(const char* other)
+      : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {
+      assign(widen(other));
+  }
+
   ~FString() {}
 
 public:
-#ifdef UTF16_FSTRING
   FString &assign(ElementPointer other) {
     ArrayCount = (other ? (wcslen(other) + 1) : 0);
     ArrayMax = ArrayCount;
@@ -1010,22 +999,6 @@ public:
 
     return "";
   }
-#else
-  FString &assign(ElementPointer other) {
-    ArrayCount = (other ? (strlen(other) + 1) : 0);
-    ArrayMax = ArrayCount;
-    ArrayData = (ArrayCount > 0 ? other : nullptr);
-    return *this;
-  }
-
-  std::string ToString() const {
-    if (!empty()) {
-      return std::string(ArrayData);
-    }
-
-    return "";
-  }
-#endif
 
   ElementPointer c_str() const { return ArrayData; }
 
@@ -1047,19 +1020,11 @@ public:
   FString &operator=(const FString &other) { return assign(other.c_str()); }
 
   bool operator==(const FString &other) {
-#ifdef UTF16_FSTRING
     return (wcscmp(ArrayData, other.ArrayData) == 0);
-#else
-    return (strcmp(ArrayData, other.ArrayData) == 0);
-#endif
   }
 
   bool operator!=(const FString &other) {
-#ifdef UTF16_FSTRING
     return (wcscmp(ArrayData, other.ArrayData) != 0);
-#else
-    return (strcmp(ArrayData, other.ArrayData) != 0);
-#endif
   }
 };
 
@@ -1077,11 +1042,11 @@ public:
 struct FScriptDelegate {
 public:
   class UObject *Object;
-  class FName OnSuccess;
+  class FName FunctionName;
   uint64_t UniqueValue;
 
   bool operator==(const FScriptDelegate &other) const {
-    return Object == other.Object && OnSuccess == other.OnSuccess &&
+    return Object == other.Object && FunctionName == other.FunctionName &&
         UniqueValue == other.UniqueValue;
   }
 

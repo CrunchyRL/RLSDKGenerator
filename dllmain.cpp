@@ -272,12 +272,6 @@ bool UnrealProperty::CantConst() const {
   return false;
 }
 
-// This is a known bug that still needs to be fixed, out parameters that are
-// arrays cannot be referenced so I've just...disabled that for now. Possible
-// solutions involve wrapping them their own struct, using std::array, or just
-// changing it from an array or a pointer and trusting the user gives the right
-// size.
-
 bool UnrealProperty::CantReference() const {
   if (IsValid()) {
     return IsAnArray();
@@ -2465,7 +2459,7 @@ void GenerateClass(std::ofstream &file, const UnrealObject &unrealObj) {
           classStream << "\tvoid CallFunction(struct FFrame& Stack, "
                          "RESULT_DECL, class UFunction* function);\n";
           classStream << "\tvoid ProcessEvent(class UFunction* uFunction, "
-                         "void* uParams, void* uResult);\n";
+                         "void* uParams, void* uResult = {});\n";
 
         } else if (GConfig::GetCallFunctionIndex() != -1) {
           FunctionGenerator::GenerateVirtualFunctions(file);
@@ -2708,6 +2702,32 @@ void ProcessParameters(std::ofstream &stream, UObject *packageObj) {
 } // namespace ParameterGenerator
 
 namespace FunctionGenerator {
+namespace {
+void WriteFunctionParameter(std::ostream &stream,
+                            const UnrealProperty &property,
+                            const std::string &name, bool isOutParameter,
+                            bool ignoreConst = false) {
+  if (isOutParameter && property.IsAnArray()) {
+    stream << property.GetTypeForParameter(ignoreConst) << " (&" << name
+           << ")[" << property.Property->ArraySize << "]";
+    return;
+  }
+
+  stream << property.GetTypeForParameter(ignoreConst);
+
+  if (isOutParameter) {
+    stream << "& " << name;
+    return;
+  }
+
+  stream << " " << name;
+
+  if (property.IsAnArray()) {
+    stream << "[" << property.Property->ArraySize << "]";
+  }
+}
+} // namespace
+
 void GenerateVirtualFunctions(std::ofstream &stream) {
   uintptr_t processEventAddress = 0;
 
@@ -2947,13 +2967,8 @@ void GenerateFunctionCode(std::ofstream &stream,
               codeStream << ", ";
             }
 
-            codeStream << propertyPair.first.GetTypeForParameter() << " "
-                       << propertyPair.second;
-
-            if (propertyPair.first.IsAnArray()) {
-              codeStream << "[" << propertyPair.first.Property->ArraySize
-                         << "]";
-            }
+            WriteFunctionParameter(codeStream, propertyPair.first,
+                                   propertyPair.second, false);
 
             printComma = true;
           }
@@ -2965,8 +2980,8 @@ void GenerateFunctionCode(std::ofstream &stream,
               codeStream << ", ";
             }
 
-            codeStream << propertyPair.first.GetTypeForParameter(true) << "& "
-                       << propertyPair.second;
+            WriteFunctionParameter(codeStream, propertyPair.first,
+                                   propertyPair.second, true, true);
             printComma = true;
           }
         }
@@ -3287,13 +3302,8 @@ void GenerateFunctionParameters(std::ofstream &stream,
               functionStream << ", ";
             }
 
-            functionStream << propertyPair.first.GetTypeForParameter() << " "
-                           << propertyPair.second;
-
-            if (propertyPair.first.IsAnArray()) {
-              functionStream << "[" << propertyPair.first.Property->ArraySize
-                             << "]";
-            }
+            WriteFunctionParameter(functionStream, propertyPair.first,
+                                   propertyPair.second, false);
 
             if (i >= defaultSuffixStart &&
                 propertyPair.first.IsOptionalParameter() &&
@@ -3312,8 +3322,8 @@ void GenerateFunctionParameters(std::ofstream &stream,
               functionStream << ", ";
             }
 
-            functionStream << propertyPair.first.GetTypeForParameter() << "& "
-                           << propertyPair.second;
+            WriteFunctionParameter(functionStream, propertyPair.first,
+                                   propertyPair.second, true);
             printComma = true;
           }
         }

@@ -334,10 +334,10 @@ std::string GConfig::m_gameNameLong = "Rocket League";
 std::string GConfig::m_gameNameShort = "RLSDK";
 
 // Optional, mainly for your own sake, like comparing sdks you generate or release to people.
-std::string GConfig::m_gameVersion = "250307.56620.477186";
+std::string GConfig::m_gameVersion = "260303.78181.511382";
 
 // Directory folder that your want your sdk to be generated in.
-std::filesystem::path GConfig::m_outputPath = "RLSDKGenerator\\";
+std::filesystem::path GConfig::m_outputPath = "RLSDKGeneratorTest\\";
 
 const std::string& GConfig::GetGameNameLong()
 
