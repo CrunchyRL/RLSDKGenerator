@@ -337,7 +337,7 @@ std::string GConfig::m_gameNameShort = "RLSDK";
 std::string GConfig::m_gameVersion = "260303.78181.511382";
 
 // Directory folder that your want your sdk to be generated in.
-std::filesystem::path GConfig::m_outputPath = "RLSDKGeneratorTest\\";
+std::filesystem::path GConfig::m_outputPath = "RLSDKGenerator\\";
 
 const std::string& GConfig::GetGameNameLong()
 
