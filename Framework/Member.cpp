@@ -167,7 +167,7 @@ std::string Member::GetLabel(EMemberTypes type)
 	case EMemberTypes::UFunction_ParmsSize:
 		return "uint16_t ParmsSize;";
 	case EMemberTypes::UFunction_ReturnValueOffset:
-		return "unsigned long ReturnValueOffset;";
+		return "uint16_t ReturnValueOffset;";
 	case EMemberTypes::UFunction_Func:
 		return "FPointer Func;";
 	case EMemberTypes::UStructProperty_Struct:
@@ -625,7 +625,6 @@ std::map<EClassTypes, std::vector<EMemberTypes>> Member::m_classMembers = {
 	EMemberTypes::UProperty_PropertyFlags,
 	EMemberTypes::UProperty_RepOffset,
 	EMemberTypes::UProperty_RepIndex,
-	EMemberTypes::UProperty_Category,
 	EMemberTypes::UProperty_Category,
 	EMemberTypes::UProperty_ArraySizeEnum,
 	EMemberTypes::UProperty_Offset,

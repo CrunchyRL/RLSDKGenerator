@@ -33,6 +33,7 @@ namespace PiecesOfCode
 	extern const std::string FOutParamRec_Struct;
 	extern const std::string FFrame_Struct;
 	extern const std::string FImplementedInterface_Struct;
+	extern const std::string FScriptInterface_Struct;
 }
 
 // Here's where you can store your custom type overrides for your custom configuration file.

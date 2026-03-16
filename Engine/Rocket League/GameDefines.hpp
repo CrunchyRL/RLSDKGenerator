@@ -842,14 +842,6 @@ private:
   int32_t FNameEntryId;   // 0x0000 (0x04)
   int32_t InstanceNumber; // 0x0004 (0x04)
 
-  static ElementPointer widen(const char* str) {
-      if (!str)
-          return nullptr;
-      thread_local static std::wstring buffer;
-      buffer.assign(str, str + strlen(str));
-      return buffer.c_str();
-  }
-
 public:
   FName() : FNameEntryId(-1), InstanceNumber(0) {}
 
@@ -877,8 +869,6 @@ public:
       }
     }
   }
-
-  FName(const char* nameToFind) : FName(widen(nameToFind)) {}
 
   FName(const FName &name)
       : FNameEntryId(name.FNameEntryId), InstanceNumber(name.InstanceNumber) {}
@@ -952,25 +942,12 @@ public:
   int32_t ArrayCount;       // 0x0008 (0x04)
   int32_t ArrayMax;         // 0x000C (0x04)
 
-  static ElementPointer widen(const char* str) {
-      if (!str)
-          return nullptr;
-      thread_local static std::wstring buffer;
-      buffer.assign(str, str + strlen(str));
-      return buffer.c_str();
-  }
-
 public:
   FString() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {}
 
   FString(ElementPointer other)
       : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {
     assign(other);
-  }
-
-  FString(const char* other)
-      : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {
-      assign(widen(other));
   }
 
   ~FString() {}
@@ -1028,17 +1005,6 @@ public:
   }
 };
 
-struct FMultiScriptDelegate {
-public:
-  class UObject *Object;
-  struct FName FunctionName;
-  class TArray<struct FScriptDelegate> *DelegateArray;
-
-public:
-  void Call(void *params);
-  template <typename T, typename... Args> void Call(Args &&...args);
-};
-
 struct FScriptDelegate {
 public:
   class UObject *Object;
@@ -1055,12 +1021,6 @@ public:
   }
 };
 
-template <typename T> struct FScriptInterface {
-public:
-  T *Object;
-  T *Interface;
-};
-
 struct FRepRecord {
 public:
   class UProperty *Property;
@@ -1071,6 +1031,13 @@ struct FImplementedInterface {
 public:
   class UClass *Class;
   class UProperty *PointerProperty;
+};
+
+struct FScriptInterface
+{
+public:
+    UObject* ObjectPointer;
+    void* InterfacePointer;
 };
 
 // FPointer

@@ -1067,9 +1067,9 @@ void GetAllPropertyFlags(std::ostringstream &stream, uint64_t propertyFlags) {
   appendFlag(propertyFlags & EPropertyFlags::CPF_EditTextBox,
              "CPF_EditTextBox");
   appendFlag(propertyFlags & EPropertyFlags::CPF_CrossLevelPassive,
-             "CPF_CrossLevelPassive");
+      "CPF_CrossLevelPassive");
   appendFlag(propertyFlags & EPropertyFlags::CPF_CrossLevelActive,
-             "CPF_CrossLevelActive");
+      "CPF_CrossLevelActive");
 
   if (!cachedFlags.empty()) {
     cachedFlags += ")";
@@ -3255,8 +3255,11 @@ void GenerateFunctionParameters(std::ofstream &stream,
 
         functionStream << "\t";
 
-        if ((uFunction->FunctionFlags & EFunctionFlags::FUNC_Static) &&
-            (uFunction->FunctionFlags != EFunctionFlags::FUNC_AllFlags)) {
+        bool isStaticFunc =
+            (uFunction->FunctionFlags & EFunctionFlags::FUNC_Static) &&
+            (uFunction->FunctionFlags != EFunctionFlags::FUNC_AllFlags);
+
+        if (isStaticFunc) {
           functionStream << "static ";
         }
 
@@ -3329,6 +3332,39 @@ void GenerateFunctionParameters(std::ofstream &stream,
         }
 
         functionStream << ");\n";
+
+        bool singleUClassParam =
+            (funcParams.size() == 1) &&
+            outParams.empty() &&
+            (funcParams[0].first.Type == EPropertyTypes::UObject) &&
+            (funcParams[0].first.GetTypeForClass() == "class UClass*");
+
+        bool returnsObjectPtr =
+            returnParam.first.IsValid() &&
+            (returnParam.first.Type == EPropertyTypes::UObject ||
+                returnParam.first.Type == EPropertyTypes::UClass ||
+                returnParam.first.Type == EPropertyTypes::UInterface);
+
+        if (!isStaticFunc && singleUClassParam && returnsObjectPtr)
+        {
+            std::string funcCallName = functionObj.ValidName;
+
+            if (uFunction->FunctionFlags & EFunctionFlags::FUNC_Event)
+            {
+                funcCallName = "event" + funcCallName;
+            }
+
+            functionStream << "\ttemplate<typename C>\n";
+            functionStream << "\ttypename C* " << funcCallName << "()\n";
+            functionStream << "\t{\n";
+            functionStream << "\t\tUClass* staticClass = C::StaticClass();\n\n";
+            functionStream << "\t\tif (staticClass)\n";
+            functionStream << "\t\t{\n";
+            functionStream << "\t\t\treturn (C*)" << funcCallName << "(staticClass);\n";
+            functionStream << "\t\t}\n\n";
+            functionStream << "\t\treturn nullptr;\n";
+            functionStream << "\t}\n\n";
+        }
       }
     }
 
@@ -3771,6 +3807,7 @@ void GenerateDefines() {
   definesFile << PiecesOfCode::FScriptDelegate_Struct << "\n";
   definesFile << PiecesOfCode::FRepRecord_Struct << "\n";
   definesFile << PiecesOfCode::FImplementedInterface_Struct << "\n";
+
   definesFile << PiecesOfCode::FPointer_Struct << "\n";
   definesFile << PiecesOfCode::FQWord_Struct << "\n";
 
