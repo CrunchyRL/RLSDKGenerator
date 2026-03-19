@@ -1435,6 +1435,23 @@ void GenerateStruct(std::ofstream &file, const UnrealObject &unrealObj) {
           "SkinMatrix3x4",   "BoneQuat", "EnsurePadding",
           "OctreeNodeBounds"};
 
+      const auto isKnownAlignedStruct = [&alignedStructs](
+                                            const std::string &cppName) {
+        if (std::find(alignedStructs.begin(), alignedStructs.end(), cppName) !=
+            alignedStructs.end()) {
+          return true;
+        }
+
+        if ((cppName.length() > 1) && (cppName[0] == 'F')) {
+          return (std::find(alignedStructs.begin(), alignedStructs.end(),
+                            cppName.substr(1)) != alignedStructs.end());
+        }
+
+        return false;
+      };
+
+      const bool requiresExplicitAlignment = isKnownAlignedStruct(structNameCPP);
+
       if (superField && (superField != scriptStruct)) {
         size = (scriptStruct->PropertySize - superField->PropertySize);
         lastOffset = superField->PropertySize;
@@ -1456,10 +1473,22 @@ void GenerateStruct(std::ofstream &file, const UnrealObject &unrealObj) {
         structStream << ")\n";
 
         if (structCount > 1) {
-          structStream << "struct " << structOuterNameCPP << "_"
+          structStream << "struct ";
+
+          if (requiresExplicitAlignment) {
+            structStream << "alignas(16) ";
+          }
+
+          structStream << structOuterNameCPP << "_"
                        << structNameCPP << " : ";
         } else {
-          structStream << "struct " << structNameCPP << " : ";
+          structStream << "struct ";
+
+          if (requiresExplicitAlignment) {
+            structStream << "alignas(16) ";
+          }
+
+          structStream << structNameCPP << " : ";
         }
 
         if ((fieldStructCount > 1) && superField->Outer) {
@@ -1474,21 +1503,32 @@ void GenerateStruct(std::ofstream &file, const UnrealObject &unrealObj) {
         structStream << "// " << Printer::Hex(size, EWidthTypes::Size) << "\n";
 
         if (structCount > 1) {
-          structStream << "struct " << structOuterNameCPP << "_"
-                       << structNameCPP << "\n";
+          structStream << "struct ";
+
+          if (requiresExplicitAlignment) {
+            structStream << "alignas(16) ";
+          }
+
+          structStream << structOuterNameCPP << "_" << structNameCPP << "\n";
         } else {
-          structStream << "struct " << structNameCPP << "\n";
+          structStream << "struct ";
+
+          if (requiresExplicitAlignment) {
+            structStream << "alignas(16) ";
+          }
+
+          structStream << structNameCPP << "\n";
         }
       }
 
       structStream << "{\n";
 
-      if (std::find(alignedStructs.begin(), alignedStructs.end(),
-                    structNameCPP) != alignedStructs.end()) {
-        structStream << "alignas(16)\n";
-      }
-
       std::vector<UnrealProperty> structProperties;
+      int32_t effectiveAlignment = scriptStruct->MinAlignment;
+
+      if (requiresExplicitAlignment) {
+        effectiveAlignment = (std::max<int32_t>)(effectiveAlignment, 16);
+      }
 
       for (UProperty *uProperty =
                static_cast<UProperty *>(scriptStruct->Children);
@@ -1510,6 +1550,24 @@ void GenerateStruct(std::ofstream &file, const UnrealObject &unrealObj) {
 
       for (const UnrealProperty &unrealProp : structProperties) {
         if (unrealProp.IsValid()) {
+          if (unrealProp.Type == EPropertyTypes::FStruct) {
+            UStructProperty *structProperty =
+                static_cast<UStructProperty *>(unrealProp.Property);
+
+            if (structProperty && structProperty->Struct) {
+              int32_t memberAlignment = structProperty->Struct->MinAlignment;
+              std::string memberStructName = UnrealObject::CreateValidName(
+                  structProperty->Struct->GetNameCPP());
+
+              if (isKnownAlignedStruct(memberStructName)) {
+                memberAlignment = (std::max<int32_t>)(memberAlignment, 16);
+              }
+
+              effectiveAlignment =
+                  (std::max)(effectiveAlignment, memberAlignment);
+            }
+          }
+
           if (lastOffset < unrealProp.Property->Offset) {
             missedOffset = (unrealProp.Property->Offset - lastOffset);
 
@@ -1798,16 +1856,16 @@ void GenerateStruct(std::ofstream &file, const UnrealObject &unrealObj) {
       }
 
 #ifndef SKIP_MIN_ALIGNMENT
-      if (scriptStruct->MinAlignment) {
-        int32_t actualSize = 0;
+      if (effectiveAlignment > 0) {
+        int32_t actualSize = static_cast<int32_t>(lastOffset);
+        int32_t remainder = (actualSize % effectiveAlignment);
 
-        for (int32_t i = 0; actualSize < scriptStruct->PropertySize; i++) {
-          actualSize += scriptStruct->MinAlignment;
+        if (remainder != 0) {
+          actualSize += (effectiveAlignment - remainder);
         }
 
-        if ((lastOffset < actualSize) &&
-            (actualSize > scriptStruct->PropertySize)) {
-          int32_t padding = (actualSize - lastOffset);
+        if (lastOffset < static_cast<size_t>(actualSize)) {
+          int32_t padding = (actualSize - static_cast<int32_t>(lastOffset));
           std::string missedStr = Printer::Hex(padding);
           propertyStream << "MinStructAlignment" << "[" << missedStr << "];";
 
@@ -4120,6 +4178,7 @@ bool Initialize(bool bCreateLog) {
       UStruct::Register_SuperField();
       UStruct::Register_Children();
       UStruct::Register_PropertySize();
+      UStruct::Register_MinAlignment();
       UFunction::Register_FunctionFlags();
       UFunction::Register_iNative();
       UFunction::Register_RepOffset();
