@@ -82,159 +82,329 @@ namespace PiecesOfCode {
         "\t}\n"
         "};\n";
 
-    const std::string TArray_Class =
-        "template<typename InElementType>\n"
-        "class TArray\n"
-        "{\n"
-        "public:\n"
-        "\tusing ElementType = InElementType;\n"
-        "\tusing ElementPointer = ElementType*;\n"
-        "\tusing ElementReference = ElementType&;\n"
-        "\tusing ElementConstPointer = const ElementType*;\n"
-        "\tusing ElementConstReference = const ElementType&;\n"
-        "\tusing Iterator = TIterator<TArray<ElementType>>;\n"
-        "\n"
-        "private:\n"
-        "\tElementPointer ArrayData;\n"
-        "\tint32_t ArrayCount;\n"
-        "\tint32_t ArrayMax;\n"
-        "\n"
-        "public:\n"
-        "\tTArray() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0)\n"
-        "\t{\n"
-        "\t\t//ReAllocate(sizeof(ElementType));\n"
-        "\t}\n"
-        "\n"
-        "\t~TArray()\n"
-        "\t{\n"
-        "\t\t//clear();\n"
-        "\t\t//::operator delete(ArrayData, ArrayMax * sizeof(ElementType));\n"
-        "\t}\n"
-        "\n"
-        "public:\n"
-        "\tElementConstReference operator[](int32_t index) const\n"
-        "\t{\n"
-        "\t\treturn ArrayData[index];\n"
-        "\t}\n"
-        "\n"
-        "\tElementReference operator[](int32_t index)\n"
-        "\t{\n"
-        "\t\treturn ArrayData[index];\n"
-        "\t}\n"
-        "\n"
-        "\tElementConstReference at(int32_t index) const\n"
-        "\t{\n"
-        "\t\treturn ArrayData[index];\n"
-        "\t}\n"
-        "\n"
-        "\tElementReference at(int32_t index)\n"
-        "\t{\n"
-        "\t\treturn ArrayData[index];\n"
-        "\t}\n"
-        "\n"
-        "\tElementConstPointer data() const\n"
-        "\t{\n"
-        "\t\treturn ArrayData;\n"
-        "\t}\n"
-        "\n"
-        "\tvoid push_back(ElementConstReference newElement)\n"
-        "\t{\n"
-        "\t\tif (ArrayCount >= ArrayMax)\n"
-        "\t\t{\n"
-        "\t\t\tReAllocate(sizeof(ElementType) * (ArrayCount + 1));\n"
-        "\t\t}\n"
-        "\n"
-        "\t\tnew(&ArrayData[ArrayCount]) ElementType(newElement);\n"
-        "\t\tArrayCount++;\n"
-        "\t}\n"
-        "\n"
-        "\tvoid push_back(ElementReference& newElement)\n"
-        "\t{\n"
-        "\t\tif (ArrayCount >= ArrayMax)\n"
-        "\t\t{\n"
-        "\t\t\tReAllocate(sizeof(ElementType) * (ArrayCount + 1));\n"
-        "\t\t}\n"
-        "\n"
-        "\t\tnew(&ArrayData[ArrayCount]) ElementType(newElement);\n"
-        "\t\tArrayCount++;\n"
-        "\t}\n"
-        "\n"
-        "\tvoid pop_back()\n"
-        "\t{\n"
-        "\t\tif (ArrayCount > 0)\n"
-        "\t\t{\n"
-        "\t\t\tArrayCount--;\n"
-        "\t\t\tArrayData[ArrayCount].~ElementType();\n"
-        "\t\t}\n"
-        "\t}\n"
-        "\n"
-        "\tvoid clear()\n"
-        "\t{\n"
-        "\t\tfor (int32_t i = 0; i < ArrayCount; i++)\n"
-        "\t\t{\n"
-        "\t\t\tArrayData[i].~ElementType();\n"
-        "\t\t}\n"
-        "\n"
-        "\t\tArrayCount = 0;\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t size() const\n"
-        "\t{\n"
-        "\t\treturn ArrayCount;\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t capacity() const\n"
-        "\t{\n"
-        "\t\treturn ArrayMax;\n"
-        "\t}\n"
-        "\n"
-        "\tbool empty() const\n"
-        "\t{\n"
-        "\t\tif (ArrayData)\n"
-        "\t\t{\n"
-        "\t\t\treturn (size() == 0);\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn true;\n"
-        "\t}\n"
-        "\n"
-        "\tIterator begin()\n"
-        "\t{\n"
-        "\t\treturn Iterator(ArrayData);\n"
-        "\t}\n"
-        "\n"
-        "\tIterator end()\n"
-        "\t{\n"
-        "\t\treturn Iterator(ArrayData + ArrayCount);\n"
-        "\t}\n"
-        "\n"
-        "private:\n"
-        "\tvoid ReAllocate(int32_t newArrayMax)\n"
-        "\t{\n"
-        "\t\tElementPointer newArrayData = (ElementPointer)::operator "
-        "new(newArrayMax * sizeof(ElementType));\n"
-        "\t\tint32_t newNum = ArrayCount;\n"
-        "\n"
-        "\t\tif (newArrayMax < newNum)\n"
-        "\t\t{\n"
-        "\t\t\tnewNum = newArrayMax;\n"
-        "\t\t}\n"
-        "\n"
-        "\t\tfor (int32_t i = 0; i < newNum; i++)\n"
-        "\t\t{\n"
-        "\t\t\tnew(newArrayData + i) ElementType(std::move(ArrayData[i]));\n"
-        "\t\t}\n"
-        "\n"
-        "\t\tfor (int32_t i = 0; i < ArrayCount; i++)\n"
-        "\t\t{\n"
-        "\t\t\tArrayData[i].~ElementType();\n"
-        "\t\t}\n"
-        "\n"
-        "\t\t::operator delete(ArrayData, ArrayMax * sizeof(ElementType));\n"
-        "\t\tArrayData = newArrayData;\n"
-        "\t\tArrayMax = newArrayMax;\n"
-        "\t}\n"
-        "};\n";
+    const std::string TArray_Class = R"RLSDK(template<typename InElementType>
+class TArray
+{
+public:
+	using ElementType = InElementType;
+	using ElementPointer = ElementType*;
+	using ElementReference = ElementType&;
+	using ElementConstPointer = const ElementType*;
+	using ElementConstReference = const ElementType&;
+	using Iterator = TIterator<TArray<ElementType>>;
+
+private:
+	ElementPointer ArrayData;
+	int32_t ArrayCount;
+	int32_t ArrayMax;
+
+private:
+	template<typename FunctionType>
+	static FunctionType GetGMallocVirtualFunction(size_t index)
+	{
+		if (!GMalloc) {
+			return nullptr;
+		}
+
+		void* instance = *reinterpret_cast<void**>(GMalloc);
+		if (!instance) {
+			return nullptr;
+		}
+
+		void** vTable = *reinterpret_cast<void***>(instance);
+		return reinterpret_cast<FunctionType>(vTable[index]);
+	}
+
+	static void* GMallocAlloc(size_t bytes, uint32_t alignment = 8)
+	{
+		using FMallocType = void* (__fastcall*)(void*, uint32_t, uint32_t);
+		if (auto func = GetGMallocVirtualFunction<FMallocType>(2)) {
+			return func(GMalloc, static_cast<uint32_t>(bytes), alignment);
+		}
+
+		return nullptr;
+	}
+
+	static void* GMallocRealloc(void* original, size_t bytes, uint32_t alignment = 8)
+	{
+		using FReallocType = void* (__fastcall*)(void*, void*, uint32_t, uint32_t);
+		if (auto func = GetGMallocVirtualFunction<FReallocType>(3)) {
+			return func(GMalloc, original, static_cast<uint32_t>(bytes), alignment);
+		}
+
+		return nullptr;
+	}
+
+	static void GMallocFree(void* original)
+	{
+		if (!original) {
+			return;
+		}
+
+		using FFreeType = void(__fastcall*)(void*, void*);
+		if (auto func = GetGMallocVirtualFunction<FFreeType>(4)) {
+			func(GMalloc, original);
+		}
+	}
+
+	static int32_t CalculateGrowth(int32_t requestedCount)
+	{
+		if (requestedCount <= 0) {
+			return 0;
+		}
+
+		return (requestedCount + 15) & ~15;
+	}
+
+public:
+	TArray() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0)
+	{
+		//ReAllocate(sizeof(ElementType));
+	}
+
+	~TArray()
+	{
+		//clear();
+		//::operator delete(ArrayData, ArrayMax * sizeof(ElementType));
+	}
+
+public:
+	ElementConstReference operator[](int32_t index) const
+	{
+		return ArrayData[index];
+	}
+
+	ElementReference operator[](int32_t index)
+	{
+		return ArrayData[index];
+	}
+
+	ElementConstReference at(int32_t index) const
+	{
+		return ArrayData[index];
+	}
+
+	ElementReference at(int32_t index)
+	{
+		return ArrayData[index];
+	}
+
+	ElementConstPointer data() const
+	{
+		return ArrayData;
+	}
+
+	void push_back(ElementConstReference newElement)
+	{
+		if (ArrayCount >= ArrayMax) {
+			if (ArrayMax == 0) {
+				Reserve(16);
+			}
+			else {
+				Reserve(ArrayMax * 2);
+			}
+		}
+
+		if (!ArrayData) {
+			return;
+		}
+
+		if constexpr (std::is_trivially_copyable_v<ElementType>) {
+			std::memcpy(ArrayData + ArrayCount, &newElement, sizeof(ElementType));
+		}
+		else {
+			new(ArrayData + ArrayCount) ElementType(newElement);
+		}
+
+		++ArrayCount;
+	}
+
+	void push_back(ElementReference& newElement)
+	{
+		push_back(static_cast<ElementConstReference>(newElement));
+	}
+
+	int32_t AddItem(ElementConstReference newElement)
+	{
+		push_back(newElement);
+		if (ArrayCount == 0) {
+			return -1;
+		}
+		return ArrayCount - 1;
+	}
+
+	int32_t RemoveItem(ElementConstReference element)
+	{
+		for (int32_t index = 0; index < ArrayCount; ++index)
+		{
+			if (!(ArrayData[index] == element)) {
+				continue;
+			}
+
+			Remove(index, 1);
+			return index;
+		}
+
+		return -1;
+	}
+
+	void pop_back()
+	{
+		if (ArrayCount < 1) {
+			return;
+		}
+
+		--ArrayCount;
+
+		if constexpr (!std::is_trivially_copyable_v<ElementType>) {
+			ArrayData[ArrayCount].~ElementType();
+		}
+	}
+
+	void clear()
+	{
+		if constexpr (!std::is_trivially_copyable_v<ElementType>) {
+			for (int32_t i = 0; i < ArrayCount; ++i) {
+				ArrayData[i].~ElementType();
+			}
+		}
+
+		ArrayCount = 0;
+	}
+
+	int32_t size() const
+	{
+		return ArrayCount;
+	}
+
+	int32_t capacity() const
+	{
+		return ArrayMax;
+	}
+
+	bool empty() const
+	{
+		if (ArrayData)
+		{
+			return (size() == 0);
+		}
+
+		return true;
+	}
+
+	Iterator begin()
+	{
+		return Iterator(ArrayData);
+	}
+
+	Iterator begin() const
+	{
+		return Iterator(ArrayData);
+	}
+
+	Iterator end()
+	{
+		return Iterator(ArrayData + ArrayCount);
+	}
+
+	Iterator end() const
+	{
+		return Iterator(ArrayData + ArrayCount);
+	}
+
+	void Reserve(int32_t capacity)
+	{
+		capacity = CalculateGrowth(capacity);
+		if (capacity < ArrayMax) {
+			return;
+		}
+
+		ElementPointer newArrayData = nullptr;
+		if (ArrayData) {
+			newArrayData = static_cast<ElementPointer>(GMallocRealloc(ArrayData, static_cast<size_t>(capacity) * sizeof(ElementType), alignof(ElementType)));
+		}
+		else {
+			newArrayData = static_cast<ElementPointer>(GMallocAlloc(static_cast<size_t>(capacity) * sizeof(ElementType), alignof(ElementType)));
+		}
+
+		if (!newArrayData) {
+			return;
+		}
+
+		ArrayData = newArrayData;
+		ArrayMax = capacity;
+	}
+
+	void Remove(int32_t index, int32_t count = 1)
+	{
+		if (index < 0 || index >= ArrayCount || count <= 0) {
+			return;
+		}
+
+		if (index + count > ArrayCount) {
+			count = ArrayCount - index;
+		}
+
+		for (int32_t i = index; i < ArrayCount - count; ++i) {
+			ArrayData[i] = std::move(ArrayData[i + count]);
+		}
+
+		if constexpr (!std::is_trivially_copyable_v<ElementType>) {
+			for (int32_t i = ArrayCount - count; i < ArrayCount; ++i) {
+				ArrayData[i].~ElementType();
+			}
+		}
+
+		ArrayCount -= count;
+	}
+
+private:
+	void ReAllocate(int32_t newArrayMax)
+	{
+		newArrayMax = (std::max)(newArrayMax, 0);
+
+		if constexpr (!std::is_trivially_copyable_v<ElementType>) {
+			if (newArrayMax < ArrayCount) {
+				for (int32_t i = newArrayMax; i < ArrayCount; ++i) {
+					ArrayData[i].~ElementType();
+				}
+			}
+		}
+
+		if (newArrayMax == 0) {
+			if (ArrayData) {
+				GMallocFree(ArrayData);
+				ArrayData = nullptr;
+			}
+			ArrayCount = 0;
+			ArrayMax = 0;
+			return;
+		}
+
+		ElementPointer newArrayData = ArrayData
+			? static_cast<ElementPointer>(GMallocRealloc(ArrayData, static_cast<size_t>(newArrayMax) * sizeof(ElementType), alignof(ElementType)))
+			: static_cast<ElementPointer>(GMallocAlloc(static_cast<size_t>(newArrayMax) * sizeof(ElementType), alignof(ElementType)));
+
+		if (!newArrayData) {
+			return;
+		}
+
+		ArrayData = newArrayData;
+
+		if constexpr (!std::is_trivially_copyable_v<ElementType>) {
+			for (int32_t i = ArrayCount; i < newArrayMax; ++i) {
+				new(ArrayData + i) ElementType();
+			}
+		}
+		else if (newArrayMax > ArrayCount) {
+			std::memset(ArrayData + ArrayCount, 0, static_cast<size_t>(newArrayMax - ArrayCount) * sizeof(ElementType));
+		}
+
+		ArrayCount = newArrayMax;
+		ArrayMax = newArrayMax;
+	}
+};
+)RLSDK";
 
     const std::string TMap_Class =
         "template<typename TKey, typename TValue>\n"
@@ -367,56 +537,45 @@ namespace PiecesOfCode {
         "{\n"
         "public:";
 
-    const std::string FNameEntry_Struct_UTF16 =
-        "\npublic:\n"
-        "\tFNameEntry() : Flags(0), Index(-1), HashNext(nullptr), Name(L\"None\") "
-        "{}\n"
-        "\t~FNameEntry() {}\n"
-        "\n"
-        "public:\n"
-        "\tuint64_t GetFlags() const\n"
-        "\t{\n"
-        "\t\treturn Flags;\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t GetIndex() const\n"
-        "\t{\n"
-        "\t\treturn Index;\n"
-        "\t}\n"
-        "\n"
-        "\tconst wchar_t* GetWideName() const\n"
-        "\t{\n"
-        "\t\treturn Name;\n"
-        "\t}\n"
-        "\n"
-        "\tstd::wstring ToWideString() const\n"
-        "\t{\n"
-        "\t\tconst wchar_t* wideName = GetWideName();\n"
-        "\n"
-        "\t\tif (wideName)\n"
-        "\t\t{\n"
-        "\t\t\treturn std::wstring(wideName);\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn L\"\";\n"
-        "\t}\n"
-        "\n"
-        "\tstd::string ToString() const\n"
-        "\t{\n"
-        "\t\tstd::wstring wstr = ToWideString();\n"
-        "\t\tif (wstr.empty()) return std::string();\n"
-        "\n"
-        "\t\tint size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, "
-        "nullptr, 0, nullptr, nullptr);\n"
-        "\t\tif (size_needed <= 0) return std::string();\n"
-        "\n"
-        "\t\tstd::string str(size_needed - 1, 0);\n"
-        "\t\tWideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], "
-        "size_needed, nullptr, nullptr);\n"
-        "\n"
-        "\t\treturn str;\n"
-        "\t}\n"
-        "};\n";
+    const std::string FNameEntry_Struct_UTF16 = R"RLSDK(
+public:
+	FNameEntry() : Flags(0), Index(-1), HashNext(nullptr), Name(L"None") {}
+	~FNameEntry() {}
+
+public:
+	uint64_t GetFlags() const
+	{
+		return Flags;
+	}
+
+	int32_t GetIndex() const
+	{
+		return Index;
+	}
+
+	const wchar_t* GetWideName() const
+	{
+		return Name;
+	}
+
+	std::wstring ToWideString() const
+	{
+		const wchar_t* wideName = GetWideName();
+
+		if (wideName)
+		{
+			return std::wstring(wideName);
+		}
+
+		return L"";
+	}
+
+	std::string ToString() const
+	{
+		return RLSDKDetail::WideToUtf8(GetWideName());
+	}
+};
+)RLSDK";
 
     const std::string FNameEntry_Struct_UTF8 =
         "\npublic:\n"
@@ -445,138 +604,252 @@ namespace PiecesOfCode {
         "\t}\n"
         "};\n";
 
-    const std::string FName_Struct_UTF16 =
-        "class FName\n"
-        "{\n"
-        "public:\n"
-        "\tusing ElementType = const wchar_t;\n"
-        "\tusing ElementPointer = ElementType*;\n"
-        "\n"
-        "private:\n"
-        "\tint32_t\t\t\tFNameEntryId;\t\t\t\t\t\t\t\t\t// 0x0000 (0x04)\n"
-        "\tint32_t\t\t\tInstanceNumber;\t\t\t\t\t\t\t\t\t// 0x0004 (0x04)\n"
-        "\n"
-        "public:\n"
-        "\tFName() : FNameEntryId(-1), InstanceNumber(0) {}\n"
-        "\n"
-        "\tFName(int32_t id) : FNameEntryId(id), InstanceNumber(0) {}\n"
-        "\n"
-        "\tFName(const ElementPointer nameToFind) : FNameEntryId(-1), "
-        "InstanceNumber(0)\n"
-        "\t{\n"
-        "\t\tstatic std::vector<int32_t> foundNames{};\n"
-        "\n"
-        "\t\tfor (int32_t entryId : foundNames)\n"
-        "\t\t{\n"
-        "\t\t\tif (Names()->at(entryId))\n"
-        "\t\t\t{\n"
-        "\t\t\t\tif (wcscmp(Names()->at(entryId)->Name, nameToFind) == 0)\n"
-        "\t\t\t\t{\n"
-        "\t\t\t\t\tFNameEntryId = entryId;\n"
-        "\t\t\t\t\treturn;\n"
-        "\t\t\t\t}\n"
-        "\t\t\t}\n"
-        "\t\t}\n"
-        "\n"
-        "\t\tfor (int32_t i = 0; i < Names()->size(); i++)\n"
-        "\t\t{\n"
-        "\t\t\tif (Names()->at(i))\n"
-        "\t\t\t{\n"
-        "\t\t\t\tif (wcscmp(Names()->at(i)->Name, nameToFind) == 0)\n"
-        "\t\t\t\t{\n"
-        "\t\t\t\t\tfoundNames.push_back(i);\n"
-        "\t\t\t\t\tFNameEntryId = i;\n"
-        "\t\t\t\t\treturn;\n"
-        "\t\t\t\t}\n"
-        "\t\t\t}\n"
-        "\t\t}\n"
-        "\t}\n"
-        "\n"
-        "\tFName(const FName& name) : FNameEntryId(name.FNameEntryId), "
-        "InstanceNumber(name.InstanceNumber) {}\n"
-        "\n"
-        "\t~FName() {}\n"
-        "\n"
-        "public:\n"
-        "\tstatic class TArray<class FNameEntry*>* Names()\n"
-        "\t{\n"
-        "\t\treturn reinterpret_cast<TArray<FNameEntry*>*>(GNames);\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t GetDisplayIndex() const\n"
-        "\t{\n"
-        "\t\treturn FNameEntryId;\n"
-        "\t}\n"
-        "\n"
-        "\tconst FNameEntry GetDisplayNameEntry() const\n"
-        "\t{\n"
-        "\t\tif (IsValid())\n"
-        "\t\t{\n"
-        "\t\t\treturn *Names()->at(FNameEntryId);\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn FNameEntry();\n"
-        "\t}\n"
-        "\n"
-        "\tFNameEntry* GetEntry()\n"
-        "\t{\n"
-        "\t\tif (IsValid())\n"
-        "\t\t{\n"
-        "\t\t\treturn Names()->at(FNameEntryId);\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn nullptr;\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t GetInstance() const\n"
-        "\t{\n"
-        "\t\treturn InstanceNumber;\n"
-        "\t}\n"
-        "\n"
-        "\tvoid SetInstance(int32_t newNumber)\n"
-        "\t{\n"
-        "\t\tInstanceNumber = newNumber;\n"
-        "\t}\n"
-        "\n"
-        "\tstd::string ToString() const\n"
-        "\t{\n"
-        "\t\tif (IsValid())\n"
-        "\t\t{\n"
-        "\t\t\treturn GetDisplayNameEntry().ToString();\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn \"UnknownName\";\n"
-        "\t}\n"
-        "\n"
-        "\tbool IsValid() const\n"
-        "\t{\n"
-        "\t\tif ((FNameEntryId < 0 || FNameEntryId > Names()->size()))\n"
-        "\t\t{\n"
-        "\t\t\treturn false;\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn true;\n"
-        "\t}\n"
-        "\n"
-        "public:\n"
-        "\tFName& operator=(const FName& other)\n"
-        "\t{\n"
-        "\t\tFNameEntryId = other.FNameEntryId;\n"
-        "\t\tInstanceNumber = other.InstanceNumber;\n"
-        "\t\treturn *this;\n"
-        "\t}\n"
-        "\n"
-        "\tbool operator==(const FName& other) const\n"
-        "\t{\n"
-        "\t\treturn ((FNameEntryId == other.FNameEntryId) && (InstanceNumber == "
-        "other.InstanceNumber));\n"
-        "\t}\n"
-        "\n"
-        "\tbool operator!=(const FName& other) const\n"
-        "\t{\n"
-        "\t\treturn !(*this == other);\n"
-        "\t}\n"
-        "};\n";
+    const std::string FName_Struct_UTF16 = R"RLSDK(class FName
+{
+public:
+	using ElementType = const wchar_t;
+	using ElementPointer = ElementType*;
+
+private:
+	int32_t			FNameEntryId;									// 0x0000 (0x04)
+	int32_t			InstanceNumber;									// 0x0004 (0x04)
+
+private:
+	static constexpr int32_t NAME_NO_NUMBER_INTERNAL = 0;
+
+	static bool TryParseNumberedName(const wchar_t* rawName, std::wstring& outBaseName, int32_t& outInstanceNumber)
+	{
+		if (!rawName || !*rawName) {
+			return false;
+		}
+
+		outBaseName = rawName;
+		outInstanceNumber = NAME_NO_NUMBER_INTERNAL;
+
+		const size_t length = outBaseName.length();
+		if (length == 0) {
+			return false;
+		}
+
+		const size_t underscoreIndex = outBaseName.find_last_of(L'_');
+		if (underscoreIndex == std::wstring::npos || underscoreIndex + 1 >= length) {
+			return false;
+		}
+
+		for (size_t i = underscoreIndex + 1; i < length; ++i) {
+			const wchar_t ch = outBaseName[i];
+			if (ch < L'0' || ch > L'9') {
+				return false;
+			}
+		}
+
+		outInstanceNumber = std::stoi(outBaseName.substr(underscoreIndex + 1)) + 1;
+		outBaseName.resize(underscoreIndex);
+		return true;
+	}
+
+	static int32_t FindEntryId(const wchar_t* nameToFind)
+	{
+		if (!nameToFind || !*nameToFind) {
+			return -1;
+		}
+
+		static std::map<std::wstring, int32_t> foundNames{};
+		const std::wstring cacheKey(nameToFind);
+
+		if (const auto found = foundNames.find(cacheKey); found != foundNames.end()) {
+			const int32_t cachedId = found->second;
+			if (cachedId >= 0) {
+				if (auto* names = Names()) {
+					if (cachedId < names->size()) {
+						if (auto* entry = names->at(cachedId)) {
+							if (std::wcscmp(entry->GetWideName(), nameToFind) == 0) {
+								return cachedId;
+							}
+						}
+					}
+				}
+			}
+
+			foundNames.erase(found);
+		}
+
+		auto* names = Names();
+		if (!names) {
+			return -1;
+		}
+
+		for (int32_t i = 0; i < names->size(); ++i)
+		{
+			auto* entry = names->at(i);
+			if (!entry) {
+				continue;
+			}
+
+			if (std::wcscmp(entry->GetWideName(), nameToFind) == 0)
+			{
+				foundNames.emplace(cacheKey, i);
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	void AssignFromWideName(const wchar_t* rawName, int32_t instanceNumber = -1)
+	{
+		FNameEntryId = -1;
+		InstanceNumber = NAME_NO_NUMBER_INTERNAL;
+
+		if (!rawName || !*rawName) {
+			return;
+		}
+
+		std::wstring baseName(rawName);
+		int32_t resolvedInstanceNumber = NAME_NO_NUMBER_INTERNAL;
+
+		if (instanceNumber == -1) {
+			TryParseNumberedName(rawName, baseName, resolvedInstanceNumber);
+		}
+		else {
+			resolvedInstanceNumber = instanceNumber;
+		}
+
+		const int32_t foundEntryId = FindEntryId(baseName.c_str());
+		if (foundEntryId >= 0) {
+			FNameEntryId = foundEntryId;
+			InstanceNumber = resolvedInstanceNumber;
+		}
+	}
+
+public:
+	FName() : FNameEntryId(0), InstanceNumber(NAME_NO_NUMBER_INTERNAL) {}
+
+	FName(int32_t id) : FNameEntryId(id), InstanceNumber(NAME_NO_NUMBER_INTERNAL) {}
+
+	FName(const ElementPointer nameToFind) : FNameEntryId(-1), InstanceNumber(NAME_NO_NUMBER_INTERNAL)
+	{
+		AssignFromWideName(nameToFind);
+	}
+
+	FName(const FName& name) : FNameEntryId(name.FNameEntryId), InstanceNumber(name.InstanceNumber) {}
+	FName(const char* nameToFind) : FNameEntryId(-1), InstanceNumber(NAME_NO_NUMBER_INTERNAL)
+	{
+		const std::wstring wideName = RLSDKDetail::Utf8ToWide(nameToFind);
+		AssignFromWideName(wideName.c_str());
+	}
+
+	FName(const std::string& nameToFind) : FName(nameToFind.c_str()) {}
+
+	~FName() {}
+
+public:
+	static class TArray<class FNameEntry*>* Names()
+	{
+		return reinterpret_cast<TArray<FNameEntry*>*>(GNames);
+	}
+
+	int32_t GetDisplayIndex() const
+	{
+		return FNameEntryId;
+	}
+
+	const FNameEntry GetDisplayNameEntry() const
+	{
+		if (IsValid())
+		{
+			return *Names()->at(FNameEntryId);
+		}
+
+		return FNameEntry();
+	}
+
+	FNameEntry* GetEntry()
+	{
+		if (!IsValid()) {
+			return nullptr;
+		}
+
+		return Names()->at(FNameEntryId);
+	}
+
+	int32_t GetInstance() const
+	{
+		return InstanceNumber;
+	}
+
+	void SetInstance(int32_t newNumber)
+	{
+		InstanceNumber = newNumber;
+	}
+
+	std::string ToString() const
+	{
+		if (!IsValid()) {
+			return "UnknownName";
+		}
+
+		std::string output = GetDisplayNameEntry().ToString();
+		if (InstanceNumber > NAME_NO_NUMBER_INTERNAL) {
+			output += "_" + std::to_string(InstanceNumber - 1);
+		}
+
+		return output;
+	}
+
+	std::wstring ToWideString() const
+	{
+		if (!IsValid()) {
+			return L"UnknownName";
+		}
+
+		std::wstring output = GetDisplayNameEntry().ToWideString();
+		if (InstanceNumber > NAME_NO_NUMBER_INTERNAL) {
+			output += L"_" + std::to_wstring(InstanceNumber - 1);
+		}
+
+		return output;
+	}
+
+	bool IsValid() const
+	{
+		auto* names = Names();
+		if (!names) {
+			return false;
+		}
+
+		if (FNameEntryId < 0 || FNameEntryId >= names->size()) {
+			return false;
+		}
+
+		return names->at(FNameEntryId) != nullptr;
+	}
+
+public:
+	FName& operator=(const FName& other)
+	{
+		FNameEntryId = other.FNameEntryId;
+		InstanceNumber = other.InstanceNumber;
+		return *this;
+	}
+
+	bool operator==(const FName& other) const
+	{
+		uint64_t left = 0;
+		uint64_t right = 0;
+		std::memcpy(&left, this, sizeof(left));
+		std::memcpy(&right, &other, sizeof(right));
+		return left == right;
+	}
+
+	bool operator!=(const FName& other) const
+	{
+		return !(*this == other);
+	}
+};
+
+static_assert(sizeof(FName) == 0x8, "FName must match UE3 x64 layout.");
+)RLSDK";
 
     const std::string FName_Struct_UTF8 =
         "class FName\n"
@@ -711,112 +984,152 @@ namespace PiecesOfCode {
         "\t}\n"
         "};\n";
 
-    const std::string FString_Class_UTF16 =
-        "class FString\n"
-        "{\n"
-        "public:\n"
-        "\tusing ElementType = const wchar_t;\n"
-        "\tusing ElementPointer = ElementType*;\n"
-        "\n"
-        "private:\n"
-        "\tElementPointer\tArrayData;\t\t\t\t\t\t\t\t\t\t// 0x0000 (0x08)\n"
-        "\tint32_t\t\t\tArrayCount;\t\t\t\t\t\t\t\t\t\t// 0x0008 (0x04)\n"
-        "\tint32_t\t\t\tArrayMax;\t\t\t\t\t\t\t\t\t\t// 0x000C (0x04)\n"
-        "\n"
-        "public:\n"
-        "\tFString() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {}\n"
-        "\n"
-        "\tFString(ElementPointer other) : ArrayData(nullptr), ArrayCount(0), "
-        "ArrayMax(0) { assign(other); }\n"
-        "\n"
-        "\t~FString() {}\n"
-        "\n"
-        "public:\n"
-        "\tFString& assign(ElementPointer other)\n"
-        "\t{\n"
-        "\t\tArrayCount = (int32_t)(other ? (wcslen(other) + 1) : 0);\n"
-        "\t\tArrayMax = ArrayCount;\n"
-        "\t\tArrayData = (ArrayCount > 0 ? other : nullptr);\n"
-        "\t\treturn *this;\n"
-        "\t}\n"
-        "\n"
-        "\tstd::wstring ToWideString() const\n"
-        "\t{\n"
-        "\t\tif (!empty())\n"
-        "\t\t{\n"
-        "\t\t\treturn std::wstring(c_str());\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn L\"\";\n"
-        "\t}\n"
-        "\n"
-        "\tstd::string ToString() const\n"
-        "\t{\n"
-        "\t\tif (!empty())\n"
-        "\t\t{\n"
-        "\t\t\tstd::wstring wstr = ToWideString();\n"
-        "\t\t\tif (wstr.empty()) return std::string();\n"
-        "\n"
-        "\t\t\tint size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, "
-        "nullptr, 0, nullptr, nullptr);\n"
-        "\t\t\tif (size_needed <= 0) return std::string();\n"
-        "\n"
-        "\t\t\tstd::string str(size_needed - 1, 0);\n"
-        "\t\t\tWideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], "
-        "size_needed, nullptr, nullptr);\n"
-        "\n"
-        "\t\t\treturn str;\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn \"\";\n"
-        "\t}\n"
-        "\n"
-        "\tElementPointer c_str() const\n"
-        "\t{\n"
-        "\t\treturn ArrayData;\n"
-        "\t}\n"
-        "\n"
-        "\tbool empty() const\n"
-        "\t{\n"
-        "\t\tif (ArrayData)\n"
-        "\t\t{\n"
-        "\t\t\treturn (ArrayCount == 0);\n"
-        "\t\t}\n"
-        "\n"
-        "\t\treturn true;\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t length() const\n"
-        "\t{\n"
-        "\t\treturn ArrayCount;\n"
-        "\t}\n"
-        "\n"
-        "\tint32_t size() const\n"
-        "\t{\n"
-        "\t\treturn ArrayMax;\n"
-        "\t}\n"
-        "\n"
-        "public:\n"
-        "\tFString& operator=(ElementPointer other)\n"
-        "\t{\n"
-        "\t\treturn assign(other);\n"
-        "\t}\n"
-        "\n"
-        "\tFString& operator=(const FString& other)\n"
-        "\t{\n"
-        "\t\treturn assign(other.c_str());\n"
-        "\t}\n"
-        "\n"
-        "\tbool operator==(const FString& other)\n"
-        "\t{\n"
-        "\t\treturn (wcscmp(ArrayData, other.ArrayData) == 0);\n"
-        "\t}\n"
-        "\n"
-        "\tbool operator!=(const FString& other)\n"
-        "\t{\n"
-        "\t\treturn (wcscmp(ArrayData, other.ArrayData) != 0);\n"
-        "\t}\n"
-        "};\n";
+    const std::string FString_Class_UTF16 = R"RLSDK(class FString
+{
+public:
+	using ElementType = wchar_t;
+	using ElementPointer = ElementType*;
+	using ElementConstPointer = const ElementType*;
+
+private:
+	ElementPointer	ArrayData;										// 0x0000 (0x08)
+	int32_t			ArrayCount;										// 0x0008 (0x04)
+	int32_t			ArrayMax;										// 0x000C (0x04)
+
+private:
+	static ElementPointer DuplicateWideBuffer(ElementConstPointer source, int32_t count)
+	{
+		if (!source || count <= 0) {
+			return nullptr;
+		}
+
+		auto* destination = static_cast<ElementPointer>(RLSDKDetail::GMallocAlloc(static_cast<size_t>(count) * sizeof(ElementType), alignof(ElementType)));
+		if (!destination) {
+			return const_cast<ElementPointer>(source);
+		}
+
+		std::memcpy(destination, source, static_cast<size_t>(count) * sizeof(ElementType));
+		return destination;
+	}
+
+	void AssignWide(ElementConstPointer source, int32_t explicitCount = -1)
+	{
+		if (!source || !*source) {
+			ArrayData = nullptr;
+			ArrayCount = 0;
+			ArrayMax = 0;
+			return;
+		}
+
+		const int32_t sourceCount = explicitCount >= 0
+			? explicitCount
+			: static_cast<int32_t>(std::wcslen(source) + 1);
+
+		ArrayData = DuplicateWideBuffer(source, sourceCount);
+		ArrayCount = ArrayData ? sourceCount : 0;
+		ArrayMax = ArrayCount;
+	}
+
+public:
+	FString() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) {}
+
+	FString(ElementConstPointer other) : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) { assign(other); }
+	FString(const FString& other) : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) { assign(other); }
+	FString(const std::wstring& other) : ArrayData(nullptr), ArrayCount(0), ArrayMax(0) { AssignWide(other.c_str(), static_cast<int32_t>(other.length() + 1)); }
+	FString(const char* other) : ArrayData(nullptr), ArrayCount(0), ArrayMax(0)
+	{
+		const std::wstring wide = RLSDKDetail::Utf8ToWide(other);
+		AssignWide(wide.c_str(), static_cast<int32_t>(wide.length() + 1));
+	}
+	FString(const std::string& other) : FString(other.c_str()) {}
+
+	~FString() {}
+
+public:
+	FString& assign(ElementConstPointer other)
+	{
+		AssignWide(other);
+		return *this;
+	}
+
+	FString& assign(const FString& other)
+	{
+		AssignWide(other.ArrayData, other.ArrayCount);
+		return *this;
+	}
+
+	std::wstring ToWideString() const
+	{
+		return empty() ? std::wstring() : std::wstring(c_str());
+	}
+
+	std::string ToString() const
+	{
+		return RLSDKDetail::WideToUtf8(c_str());
+	}
+
+	ElementConstPointer c_str() const
+	{
+		return ArrayData ? ArrayData : L"";
+	}
+
+	bool empty() const
+	{
+		return ArrayData == nullptr || ArrayCount == 0;
+	}
+
+	int32_t length() const
+	{
+		return ArrayCount;
+	}
+
+	int32_t size() const
+	{
+		return ArrayMax;
+	}
+
+	int32_t Len() const
+	{
+		return ArrayCount > 0 ? ArrayCount - 1 : 0;
+	}
+
+public:
+	FString& operator=(ElementConstPointer other)
+	{
+		return assign(other);
+	}
+
+	FString& operator=(const FString& other)
+	{
+		return assign(other.c_str());
+	}
+
+	bool operator==(const FString& other) const
+	{
+		if (ArrayData == other.ArrayData && ArrayCount == other.ArrayCount && ArrayMax == other.ArrayMax) {
+			return true;
+		}
+
+		if (ArrayCount != other.ArrayCount) {
+			return false;
+		}
+
+		return std::wcscmp(c_str(), other.c_str()) == 0;
+	}
+
+	bool operator!=(const FString& other) const
+	{
+		return !(*this == other);
+	}
+
+	ElementConstPointer operator*() const
+	{
+		return c_str();
+	}
+};
+
+static_assert(sizeof(FString) == 0x10, "FString must match UE3 x64 layout.");
+)RLSDK";
 
     const std::string FString_Class_UTF8 =
         "class FString\n"
@@ -994,6 +1307,9 @@ namespace PiecesOfCode {
         "\tstruct FOutParamRec* OutParams; // 0x0024 (0x04)\n"
         "};\n";
 
+    const std::string UClass_FunctionDescriptions =
+        "\tbool IsChildOf(const class UStruct* SomeBase) const;\n\n";
+
     const std::string UObject_FunctionDescriptions =
         "\tstatic class TArray<class UObject*>* GObjObjects();\n"
         "\n"
@@ -1024,6 +1340,27 @@ namespace PiecesOfCode {
         "\t{\n"
         "\t\treturn IsA(T::StaticClass());\n"
         "\t}\n\n";
+
+    const std::string UClass_Functions =
+        "bool UClass::IsChildOf(const UStruct* SomeBase) const\n"
+        "{\n"
+        "\t__try {\n"
+        "\t\tfor (const UStruct* Struct = this; Struct; Struct = (UStruct*)(Struct->SuperField->IsA<UClass>() ? Struct->SuperField : nullptr))\n"
+        "\t\t{\n"
+        "\t\t\tif (Struct == SomeBase)\n"
+        "\t\t\t{\n"
+        "\t\t\t\treturn true;\n"
+        "\t\t\t}\n"
+        "\t\t}\n"
+        "\t}\n"
+        "\t__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION\n"
+        "\t\t? EXCEPTION_EXECUTE_HANDLER\n"
+        "\t\t: EXCEPTION_CONTINUE_SEARCH) {\n"
+        "\t\treturn false;\n"
+        "\t}\n"
+        "\n"
+        "\treturn false;\n"
+        "}\n\n";
 
     const std::string UObject_Functions =
         "class TArray<class UObject*>* UObject::GObjObjects()\n"
@@ -1130,14 +1467,19 @@ namespace PiecesOfCode {
         "\n"
         "bool UObject::IsA(class UClass* uClass)\n"
         "{\n"
-        "\tfor (UClass* uSuperClass = reinterpret_cast<UClass*>(this->Class); "
-        "uSuperClass; uSuperClass = "
-        "reinterpret_cast<UClass*>(uSuperClass->SuperField))\n"
-        "\t{\n"
-        "\t\tif (uSuperClass == uClass)\n"
+        "\t__try {\n"
+        "\t\tfor (UClass* uSuperClass = reinterpret_cast<UClass*>(this->Class); uSuperClass; uSuperClass = reinterpret_cast<UClass*>(uSuperClass->SuperField))\n"
         "\t\t{\n"
-        "\t\t\treturn true;\n"
+        "\t\t\tif (uSuperClass == uClass)\n"
+        "\t\t\t{\n"
+        "\t\t\t\treturn true;\n"
+        "\t\t\t}\n"
         "\t\t}\n"
+        "\t}\n"
+        "\t__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION\n"
+        "\t\t? EXCEPTION_EXECUTE_HANDLER\n"
+        "\t\t: EXCEPTION_CONTINUE_SEARCH) {\n"
+        "\t\treturn false;\n"
         "\t}\n"
         "\n"
         "\treturn false;\n"
@@ -1145,13 +1487,22 @@ namespace PiecesOfCode {
         "\n"
         "bool UObject::IsA(int32_t objInternalInteger)\n"
         "{\n"
-        "\tUClass* uClass = "
-        "reinterpret_cast<UClass*>(UObject::GObjObjects()->at(objInternalInteger)->"
-        "Class);\n"
+        "\t__try {\n"
+        "\t\tif (objInternalInteger > UObject::GObjObjects()->size() || objInternalInteger < 0) {\n"
+        "\t\t\treturn false;\n"
+        "\t\t}\n"
         "\n"
-        "\tif (uClass)\n"
-        "\t{\n"
-        "\t\treturn this->IsA(uClass);\n"
+        "\t\tUClass* uClass = reinterpret_cast<UClass*>(UObject::GObjObjects()->at(objInternalInteger)->Class);\n"
+        "\n"
+        "\t\tif (uClass)\n"
+        "\t\t{\n"
+        "\t\t\treturn this->IsA(uClass);\n"
+        "\t\t}\n"
+        "\t}\n"
+        "\t__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION\n"
+        "\t\t? EXCEPTION_EXECUTE_HANDLER\n"
+        "\t\t: EXCEPTION_CONTINUE_SEARCH) {\n"
+        "\t\treturn false;\n"
         "\t}\n"
         "\n"
         "\treturn false;\n"

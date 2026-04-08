@@ -2505,6 +2505,9 @@ void GenerateClass(std::ofstream &file, const UnrealObject &unrealObj) {
       if (uClass == UObject::StaticClass()) {
         classStream << PiecesOfCode::UObject_FunctionDescriptions;
       }
+      if (uClass == UClass::StaticClass()) {
+          classStream << PiecesOfCode::UClass_FunctionDescriptions;
+      }
 
       file << classStream.str();
       Printer::Empty(classStream);
@@ -2880,6 +2883,10 @@ void GenerateFunctionCode(std::ofstream &stream,
                    << ")(this, uFunction, uParams);\n";
         codeStream << "}\n\n";
       }
+    }
+
+    if (uClass == UClass::StaticClass()) {
+        codeStream << PiecesOfCode::UClass_Functions;
     }
 
     if (uClass == UFunction::StaticClass()) {
@@ -3785,15 +3792,20 @@ void GenerateDefines() {
   }
 
   definesFile << "#include <algorithm>\n";
-  definesFile << "#include <locale>\n";
-  definesFile << "#include <stdlib.h>\n";
-  definesFile << "#include <xlocale>\n";
-  definesFile << "#include <ctype.h>\n";
   definesFile << "#include <chrono>\n";
-  definesFile << "#include <thread>\n";
-  definesFile << "#include <vector>\n";
-  definesFile << "#include <string>\n";
+  definesFile << "#include <ctype.h>\n";
+  definesFile << "#include <cstring>\n";
+  definesFile << "#include <cwchar>\n";
+  definesFile << "#include <locale>\n";
   definesFile << "#include <map>\n";
+  definesFile << "#include <new>\n";
+  definesFile << "#include <stdlib.h>\n";
+  definesFile << "#include <string>\n";
+  definesFile << "#include <thread>\n";
+  definesFile << "#include <type_traits>\n";
+  definesFile << "#include <utility>\n";
+  definesFile << "#include <vector>\n";
+  definesFile << "#include <xlocale>\n";
 
   if (GConfig::PrintEnumFlags()) {
     Printer::Section(definesFile, "Flags");
@@ -3835,6 +3847,7 @@ void GenerateDefines() {
   }
 
   definesFile << "#define RESULT_DECL void*const Result\n";
+  definesFile << "extern void* GMalloc;\n";
 
   Printer::Section(definesFile, "Classes");
   definesFile << PiecesOfCode::TArray_Iterator << "\n";
@@ -3843,6 +3856,70 @@ void GenerateDefines() {
 
   definesFile << "extern class TArray<class UObject*>* GObjects;\n";
   definesFile << "extern class TArray<class FNameEntry*>* GNames;\n";
+  definesFile << "\n";
+  definesFile << "namespace RLSDKDetail\n";
+  definesFile << "{\n";
+  definesFile << "\ttemplate<typename FunctionType>\n";
+  definesFile << "\tinline FunctionType GetGMallocVirtualFunction(size_t index)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\tif (!GMalloc) {\n";
+  definesFile << "\t\t\treturn nullptr;\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\tvoid* instance = *reinterpret_cast<void**>(GMalloc);\n";
+  definesFile << "\t\tif (!instance) {\n";
+  definesFile << "\t\t\treturn nullptr;\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\tvoid** vTable = *reinterpret_cast<void***>(instance);\n";
+  definesFile << "\t\treturn reinterpret_cast<FunctionType>(vTable[index]);\n";
+  definesFile << "\t}\n";
+  definesFile << "\n";
+  definesFile << "\tinline void* GMallocAlloc(size_t bytes, uint32_t alignment = 8)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\tusing FMallocType = void* (__fastcall*)(void*, uint32_t, uint32_t);\n";
+  definesFile << "\n";
+  definesFile << "\t\tif (auto func = GetGMallocVirtualFunction<FMallocType>(2)) {\n";
+  definesFile << "\t\t\treturn func(GMalloc, static_cast<uint32_t>(bytes), alignment);\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\treturn nullptr;\n";
+  definesFile << "\t}\n";
+  definesFile << "\n";
+  definesFile << "\tinline std::wstring Utf8ToWide(const char* source)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\tif (!source || !*source) {\n";
+  definesFile << "\t\t\treturn {};\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\tconst int32_t requiredCount = MultiByteToWideChar(CP_UTF8, 0, source, -1, nullptr, 0);\n";
+  definesFile << "\t\tif (requiredCount <= 0) {\n";
+  definesFile << "\t\t\treturn {};\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\tstd::wstring result(static_cast<size_t>(requiredCount), L'\\0');\n";
+  definesFile << "\t\tMultiByteToWideChar(CP_UTF8, 0, source, -1, result.data(), requiredCount);\n";
+  definesFile << "\t\tresult.resize(static_cast<size_t>(requiredCount - 1));\n";
+  definesFile << "\t\treturn result;\n";
+  definesFile << "\t}\n";
+  definesFile << "\n";
+  definesFile << "\tinline std::string WideToUtf8(const wchar_t* source)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\tif (!source || !*source) {\n";
+  definesFile << "\t\t\treturn {};\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\tconst int32_t requiredCount = WideCharToMultiByte(CP_UTF8, 0, source, -1, nullptr, 0, nullptr, nullptr);\n";
+  definesFile << "\t\tif (requiredCount <= 0) {\n";
+  definesFile << "\t\t\treturn {};\n";
+  definesFile << "\t\t}\n";
+  definesFile << "\n";
+  definesFile << "\t\tstd::string result(static_cast<size_t>(requiredCount), '\\0');\n";
+  definesFile << "\t\tWideCharToMultiByte(CP_UTF8, 0, source, -1, result.data(), requiredCount, nullptr, nullptr);\n";
+  definesFile << "\t\tresult.resize(static_cast<size_t>(requiredCount - 1));\n";
+  definesFile << "\t\treturn result;\n";
+  definesFile << "\t}\n";
+  definesFile << "}\n";
 
   Printer::Section(definesFile, "Structs");
   definesFile << PiecesOfCode::FNameEntry_Struct << "\n";
@@ -3884,6 +3961,7 @@ void GenerateDefines() {
 
   definesFile << "#include \"../SDK_HEADERS/GameDefines.hpp\"\n";
   Printer::Section(definesFile, "Initialize Globals");
+  definesFile << "void* GMalloc{};\n";
   definesFile << "class TArray<class UObject*>* GObjects{};\n";
   definesFile << "class TArray<class FNameEntry*>* GNames{};\n\n";
 

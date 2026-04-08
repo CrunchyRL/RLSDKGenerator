@@ -27,6 +27,8 @@ namespace PiecesOfCode
 	extern const std::string FQWord_Struct;
 	extern const std::string UObject_FunctionDescriptions;
 	extern const std::string UObject_Functions;
+	extern const std::string UClass_FunctionDescriptions;
+	extern const std::string UClass_Functions;
 	extern const std::string UFunction_Functions;
 	extern const std::string EEnumFlags;
 	extern const std::string FOutputDevice_Struct;
