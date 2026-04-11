@@ -2498,9 +2498,18 @@ void GenerateClass(std::ofstream &file, const UnrealObject &unrealObj) {
                     << unrealObj.FullName << "\");\n";
       }
 
+
       classStream << "\t\t}\n\n";
       classStream << "\t\treturn uClassPointer;\n";
       classStream << "\t};\n\n";
+
+      if (classNameCPP != "UObject") {
+          classStream << "\tstatic " << classNameCPP << "* GetDefaultInstance()\n";
+          classStream << "\t{\n";
+          classStream << "\t\treturn static_cast<" << classNameCPP
+              << "*>(UObject::GetDefaultInstance(StaticClass()));\n";
+          classStream << "\t};\n\n";
+      }
 
       if (uClass == UObject::StaticClass()) {
         classStream << PiecesOfCode::UObject_FunctionDescriptions;

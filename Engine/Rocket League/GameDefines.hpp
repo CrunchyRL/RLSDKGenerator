@@ -1128,6 +1128,8 @@ public:
   }
 
   static class TArray<class UObject *> *GObjObjects();
+  static class UObject *GetDefaultInstance();
+  static class UObject *GetDefaultInstance(class UClass *uClass);
   std::string GetName();
   std::string GetNameCPP();
   std::string GetFullName();
@@ -1170,6 +1172,9 @@ public:
 
     return uClassPointer;
   };
+  static class UField *GetDefaultInstance() {
+    return static_cast<UField *>(UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.Enum
@@ -1190,6 +1195,9 @@ public:
 
     return uClassPointer;
   };
+  static class UEnum *GetDefaultInstance() {
+    return static_cast<UEnum *>(UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.Const
@@ -1209,6 +1217,9 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UConst *GetDefaultInstance() {
+    return static_cast<UConst *>(UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1257,6 +1268,9 @@ public:
 
     return uClassPointer;
   };
+  static class UProperty *GetDefaultInstance() {
+    return static_cast<UProperty *>(UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 #pragma pop
 
@@ -1292,6 +1306,9 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UStruct *GetDefaultInstance() {
+    return static_cast<UStruct *>(UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1337,6 +1354,9 @@ public:
 
     return uClassPointer;
   };
+  static class UFunction *GetDefaultInstance() {
+    return static_cast<UFunction *>(UObject::GetDefaultInstance(StaticClass()));
+  };
 
   static UFunction *FindFunction(const std::string &functionFullName);
 };
@@ -1360,6 +1380,10 @@ public:
 
     return uClassPointer;
   };
+  static class UScriptStruct *GetDefaultInstance() {
+    return static_cast<UScriptStruct *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.State
@@ -1377,6 +1401,9 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UState *GetDefaultInstance() {
+    return static_cast<UState *>(UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1402,6 +1429,10 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UDelegateProperty *GetDefaultInstance() {
+    return static_cast<UDelegateProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1493,6 +1524,9 @@ public:
 
     return uClassPointer;
   };
+  static class UClass *GetDefaultInstance() {
+    return static_cast<UClass *>(UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 /*
@@ -1521,6 +1555,10 @@ public:
 
     return uClassPointer;
   };
+  static class UStructProperty *GetDefaultInstance() {
+    return static_cast<UStructProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.StrProperty
@@ -1536,6 +1574,10 @@ public:
 
     return uClassPointer;
   };
+  static class UStrProperty *GetDefaultInstance() {
+    return static_cast<UStrProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.QWordProperty
@@ -1550,6 +1592,10 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UQWordProperty *GetDefaultInstance() {
+    return static_cast<UQWordProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1572,6 +1618,10 @@ public:
 
     return uClassPointer;
   };
+  static class UObjectProperty *GetDefaultInstance() {
+    return static_cast<UObjectProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.ClassProperty
@@ -1592,6 +1642,10 @@ public:
 
     return uClassPointer;
   };
+  static class UClassProperty *GetDefaultInstance() {
+    return static_cast<UClassProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.ComponentProperty
@@ -1607,6 +1661,10 @@ public:
 
     return uClassPointer;
   };
+  static class UComponentProperty *GetDefaultInstance() {
+    return static_cast<UComponentProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.NameProperty
@@ -1621,6 +1679,10 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UNameProperty *GetDefaultInstance() {
+    return static_cast<UNameProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1645,6 +1707,10 @@ public:
 
     return uClassPointer;
   };
+  static class UMapProperty *GetDefaultInstance() {
+    return static_cast<UMapProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.IntProperty
@@ -1659,6 +1725,10 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UIntProperty *GetDefaultInstance() {
+    return static_cast<UIntProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1681,6 +1751,10 @@ public:
 
     return uClassPointer;
   };
+  static class UInterfaceProperty *GetDefaultInstance() {
+    return static_cast<UInterfaceProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.FloatProperty
@@ -1695,6 +1769,10 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UFloatProperty *GetDefaultInstance() {
+    return static_cast<UFloatProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
   };
 };
 
@@ -1716,6 +1794,10 @@ public:
 
     return uClassPointer;
   };
+  static class UByteProperty *GetDefaultInstance() {
+    return static_cast<UByteProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.BoolProperty
@@ -1736,6 +1818,10 @@ public:
 
     return uClassPointer;
   };
+  static class UBoolProperty *GetDefaultInstance() {
+    return static_cast<UBoolProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
+  };
 };
 
 // Class Core.ArrayProperty
@@ -1755,6 +1841,10 @@ public:
     }
 
     return uClassPointer;
+  };
+  static class UArrayProperty *GetDefaultInstance() {
+    return static_cast<UArrayProperty *>(
+        UObject::GetDefaultInstance(StaticClass()));
   };
 };
 

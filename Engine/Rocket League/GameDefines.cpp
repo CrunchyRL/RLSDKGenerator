@@ -20,6 +20,16 @@ class TArray<class UObject*>* UObject::GObjObjects()
 	return reinterpret_cast<TArray<UObject*>*>(GObjects);
 }
 
+class UObject* UObject::GetDefaultInstance()
+{
+	return GetDefaultInstance(StaticClass());
+}
+
+class UObject* UObject::GetDefaultInstance(class UClass* uClass)
+{
+	return (uClass ? uClass->ClassDefaultObject : nullptr);
+}
+
 std::string UObject::GetName()
 {
 	return this->Name.ToString();
