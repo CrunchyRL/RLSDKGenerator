@@ -3310,7 +3310,7 @@ void GenerateFunctionParameters(std::ofstream &stream,
               returnParam = {unrealProp, propertyNameUnique};
             } else if (unrealProp.IsOutParameter()) {
               propertyNameUnique[0] = std::toupper(propertyNameUnique[0]);
-              outParams.push_back({unrealProp, ("out" + propertyNameUnique)});
+              outParams.push_back({unrealProp, ((propertyNameUnique.find("Out") != std::string::npos) ? propertyNameUnique : ("out" + propertyNameUnique))});
             } else if (unrealProp.IsParameter()) {
               if (unrealProp.IsOptionalParameter()) {
                 propertyNameUnique[0] = std::toupper(propertyNameUnique[0]);
