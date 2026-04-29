@@ -233,6 +233,21 @@ public:
 		return ArrayCount - 1;
 	}
 
+	int32_t AddItem(ElementConstReference newElement, int32_t count)
+	{
+    	if (count <= 0) {
+        	return -1;
+    	}
+
+    	const int32_t firstIndex = ArrayCount;
+
+    	for (int32_t i = 0; i < count; ++i) {
+        	push_back(newElement);
+    	}
+
+	    return firstIndex;
+	}
+
 	int32_t RemoveItem(ElementConstReference element)
 	{
 		for (int32_t index = 0; index < ArrayCount; ++index)
