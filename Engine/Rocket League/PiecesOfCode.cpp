@@ -99,54 +99,6 @@ private:
 	int32_t ArrayMax;
 
 private:
-	template<typename FunctionType>
-	static FunctionType GetGMallocVirtualFunction(size_t index)
-	{
-		if (!GMalloc) {
-			return nullptr;
-		}
-
-		void* instance = *reinterpret_cast<void**>(GMalloc);
-		if (!instance) {
-			return nullptr;
-		}
-
-		void** vTable = *reinterpret_cast<void***>(instance);
-		return reinterpret_cast<FunctionType>(vTable[index]);
-	}
-
-	static void* GMallocAlloc(size_t bytes, uint32_t alignment = 8)
-	{
-		using FMallocType = void* (__fastcall*)(void*, uint32_t, uint32_t);
-		if (auto func = GetGMallocVirtualFunction<FMallocType>(2)) {
-			return func(GMalloc, static_cast<uint32_t>(bytes), alignment);
-		}
-
-		return nullptr;
-	}
-
-	static void* GMallocRealloc(void* original, size_t bytes, uint32_t alignment = 8)
-	{
-		using FReallocType = void* (__fastcall*)(void*, void*, uint32_t, uint32_t);
-		if (auto func = GetGMallocVirtualFunction<FReallocType>(3)) {
-			return func(GMalloc, original, static_cast<uint32_t>(bytes), alignment);
-		}
-
-		return nullptr;
-	}
-
-	static void GMallocFree(void* original)
-	{
-		if (!original) {
-			return;
-		}
-
-		using FFreeType = void(__fastcall*)(void*, void*);
-		if (auto func = GetGMallocVirtualFunction<FFreeType>(4)) {
-			func(GMalloc, original);
-		}
-	}
-
 	static int32_t CalculateGrowth(int32_t requestedCount)
 	{
 		if (requestedCount <= 0) {
@@ -336,10 +288,10 @@ public:
 
 		ElementPointer newArrayData = nullptr;
 		if (ArrayData) {
-			newArrayData = static_cast<ElementPointer>(GMallocRealloc(ArrayData, static_cast<size_t>(capacity) * sizeof(ElementType), alignof(ElementType)));
+			newArrayData = static_cast<ElementPointer>(GMalloc->Realloc(ArrayData, static_cast<size_t>(capacity) * sizeof(ElementType), alignof(ElementType)));
 		}
 		else {
-			newArrayData = static_cast<ElementPointer>(GMallocAlloc(static_cast<size_t>(capacity) * sizeof(ElementType), alignof(ElementType)));
+			newArrayData = static_cast<ElementPointer>(GMalloc->Malloc(static_cast<size_t>(capacity) * sizeof(ElementType), alignof(ElementType)));
 		}
 
 		if (!newArrayData) {
@@ -388,7 +340,7 @@ private:
 
 		if (newArrayMax == 0) {
 			if (ArrayData) {
-				GMallocFree(ArrayData);
+				GMalloc->Free(ArrayData);
 				ArrayData = nullptr;
 			}
 			ArrayCount = 0;
@@ -397,8 +349,8 @@ private:
 		}
 
 		ElementPointer newArrayData = ArrayData
-			? static_cast<ElementPointer>(GMallocRealloc(ArrayData, static_cast<size_t>(newArrayMax) * sizeof(ElementType), alignof(ElementType)))
-			: static_cast<ElementPointer>(GMallocAlloc(static_cast<size_t>(newArrayMax) * sizeof(ElementType), alignof(ElementType)));
+			? static_cast<ElementPointer>(GMalloc->Realloc(ArrayData, static_cast<size_t>(newArrayMax) * sizeof(ElementType), alignof(ElementType)))
+			: static_cast<ElementPointer>(GMalloc->Malloc(static_cast<size_t>(newArrayMax) * sizeof(ElementType), alignof(ElementType)));
 
 		if (!newArrayData) {
 			return;
@@ -1018,7 +970,7 @@ private:
 			return nullptr;
 		}
 
-		auto* destination = static_cast<ElementPointer>(RLSDKDetail::GMallocAlloc(static_cast<size_t>(count) * sizeof(ElementType), alignof(ElementType)));
+		auto* destination = static_cast<ElementPointer>(GMalloc->Malloc(static_cast<size_t>(count) * sizeof(ElementType), alignof(ElementType)));
 		if (!destination) {
 			return const_cast<ElementPointer>(source);
 		}

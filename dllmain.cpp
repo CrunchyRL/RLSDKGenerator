@@ -3856,7 +3856,110 @@ void GenerateDefines() {
   }
 
   definesFile << "#define RESULT_DECL void*const Result\n";
-  definesFile << "extern void* GMalloc;\n";
+
+  Printer::Section(definesFile, "Base Structs");
+  definesFile << PiecesOfCode::FPointer_Struct << "\n";
+  definesFile << PiecesOfCode::FQWord_Struct << "\n";
+  definesFile << PiecesOfCode::FOutputDevice_Struct << "\n";
+  definesFile << PiecesOfCode::FOutParamRec_Struct << "\n";
+  definesFile << PiecesOfCode::FFrame_Struct << "\n";
+
+  Printer::Section(definesFile, "FMalloc");
+  definesFile << "#define appSystemMalloc\t\tmalloc\n";
+  definesFile << "#define appSystemFree\t\tfree\n";
+  definesFile << "\n";
+  definesFile << "class FExec\n";
+  definesFile << "{\n";
+  definesFile << "public:\n";
+  definesFile << "\tvirtual bool Exec(const wchar_t* Cmd, FOutputDevice& Ar) = 0;\n";
+  definesFile << "};\n";
+  definesFile << "\n";
+  definesFile << "class FUseSystemMallocForNew\n";
+  definesFile << "{\n";
+  definesFile << "public:\n";
+  definesFile << "\tvoid* operator new(size_t Size)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn appSystemMalloc(Size);\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvoid operator delete(void* Ptr)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\tappSystemFree(Ptr);\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvoid* operator new[](size_t Size)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn appSystemMalloc(Size);\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvoid operator delete[](void* Ptr)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\tappSystemFree(Ptr);\n";
+  definesFile << "\t}\n";
+  definesFile << "};\n";
+  definesFile << "\n";
+  definesFile << "enum ECacheBehaviour\n";
+  definesFile << "{\n";
+  definesFile << "\tCACHE_Normal = 0,\n";
+  definesFile << "\tCACHE_WriteCombine = 1,\n";
+  definesFile << "\tCACHE_None = 2,\n";
+  definesFile << "\tCACHE_Virtual = 3,\n";
+  definesFile << "\tCACHE_MAX\n";
+  definesFile << "};\n";
+  definesFile << "\n";
+  definesFile << "class FMalloc :\n";
+  definesFile << "\tpublic FUseSystemMallocForNew,\n";
+  definesFile << "\tpublic FExec\n";
+  definesFile << "{\n";
+  definesFile << "public:\n";
+  definesFile << "\tvirtual uint32_t QuantizeSize(uint32_t Size, uint32_t Alignment)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn Size;\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual void* Malloc(uint32_t Count, uint32_t Alignment = 8) = 0;\n";
+  definesFile << "\tvirtual void* Realloc(void* Original, uint32_t Count, uint32_t Alignment = 8) = 0;\n";
+  definesFile << "\tvirtual void Free(void* Original) = 0;\n";
+  definesFile << "\n";
+  definesFile << "\tvirtual void* PhysicalAlloc(uint32_t Count, ECacheBehaviour CacheBehaviour = CACHE_WriteCombine)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn nullptr;\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual void PhysicalFree(void* Original)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual bool Exec(const wchar_t* Cmd, FOutputDevice& Ar)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn false;\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual void Tick(float DeltaTime)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual bool IsInternallyThreadSafe() const\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn false;\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual void GetAllocationInfo(FPointer& MemStats)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual void DumpAllocations(FOutputDevice& Ar)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual bool ValidateHeap()\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn true;\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual void CheckMemoryFragmentationLevel(FOutputDevice& Ar)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual bool TrimMemory(size_t /*ReservePad*/, bool bShowStats = false)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn false;\n";
+  definesFile << "\t}\n";
+  definesFile << "\tvirtual bool GetAllocationSize(void* Original, uint32_t& SizeOut)\n";
+  definesFile << "\t{\n";
+  definesFile << "\t\treturn false;\n";
+  definesFile << "\t}\n";
+  definesFile << "};\n";
+  definesFile << "\n";
+
+  definesFile << "extern FMalloc* GMalloc;\n";
 
   Printer::Section(definesFile, "Classes");
   definesFile << PiecesOfCode::TArray_Iterator << "\n";
@@ -3868,33 +3971,6 @@ void GenerateDefines() {
   definesFile << "\n";
   definesFile << "namespace RLSDKDetail\n";
   definesFile << "{\n";
-  definesFile << "\ttemplate<typename FunctionType>\n";
-  definesFile << "\tinline FunctionType GetGMallocVirtualFunction(size_t index)\n";
-  definesFile << "\t{\n";
-  definesFile << "\t\tif (!GMalloc) {\n";
-  definesFile << "\t\t\treturn nullptr;\n";
-  definesFile << "\t\t}\n";
-  definesFile << "\n";
-  definesFile << "\t\tvoid* instance = *reinterpret_cast<void**>(GMalloc);\n";
-  definesFile << "\t\tif (!instance) {\n";
-  definesFile << "\t\t\treturn nullptr;\n";
-  definesFile << "\t\t}\n";
-  definesFile << "\n";
-  definesFile << "\t\tvoid** vTable = *reinterpret_cast<void***>(instance);\n";
-  definesFile << "\t\treturn reinterpret_cast<FunctionType>(vTable[index]);\n";
-  definesFile << "\t}\n";
-  definesFile << "\n";
-  definesFile << "\tinline void* GMallocAlloc(size_t bytes, uint32_t alignment = 8)\n";
-  definesFile << "\t{\n";
-  definesFile << "\t\tusing FMallocType = void* (__fastcall*)(void*, uint32_t, uint32_t);\n";
-  definesFile << "\n";
-  definesFile << "\t\tif (auto func = GetGMallocVirtualFunction<FMallocType>(2)) {\n";
-  definesFile << "\t\t\treturn func(GMalloc, static_cast<uint32_t>(bytes), alignment);\n";
-  definesFile << "\t\t}\n";
-  definesFile << "\n";
-  definesFile << "\t\treturn nullptr;\n";
-  definesFile << "\t}\n";
-  definesFile << "\n";
   definesFile << "\tinline std::wstring Utf8ToWide(const char* source)\n";
   definesFile << "\t{\n";
   definesFile << "\t\tif (!source || !*source) {\n";
@@ -3952,13 +4028,6 @@ void GenerateDefines() {
   definesFile << PiecesOfCode::FRepRecord_Struct << "\n";
   definesFile << PiecesOfCode::FImplementedInterface_Struct << "\n";
 
-  definesFile << PiecesOfCode::FPointer_Struct << "\n";
-  definesFile << PiecesOfCode::FQWord_Struct << "\n";
-
-  definesFile << PiecesOfCode::FOutputDevice_Struct << "\n";
-  definesFile << PiecesOfCode::FOutParamRec_Struct << "\n";
-  definesFile << PiecesOfCode::FFrame_Struct << "\n";
-
   Printer::Footer(definesFile, false);
   definesFile.close();
 
@@ -3970,7 +4039,7 @@ void GenerateDefines() {
 
   definesFile << "#include \"../SDK_HEADERS/GameDefines.hpp\"\n";
   Printer::Section(definesFile, "Initialize Globals");
-  definesFile << "void* GMalloc{};\n";
+  definesFile << "FMalloc* GMalloc{};\n";
   definesFile << "class TArray<class UObject*>* GObjects{};\n";
   definesFile << "class TArray<class FNameEntry*>* GNames{};\n\n";
 
